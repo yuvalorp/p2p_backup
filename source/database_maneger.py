@@ -1,20 +1,18 @@
 import logging
 import sqlite3 as lite
-from os import path
 from time import time
 import sys
-from threading import Lock
+from json import loads,dumps
 import threading
 import queue
+
 
 CREATE_FILE_TABLE_QUERY = '''CREATE TABLE IF NOT EXISTS file_table (
      path VARCHAR(512) PRIMARY KEY,
      last_update INTEGER,
-     size INTEGER,
      proportion_original INTEGER,
      proportion_reed INTEGER, 
      file_date INTEGER  
-
      )'''
 
 CREATE_PEER_TABLE_QUERY='''CREATE TABLE IF NOT EXISTS peer_table (
@@ -42,38 +40,50 @@ CREATE_FOREIGN_PACK_TABLE_QUERY='''CREATE TABLE IF NOT EXISTS foregn_packs_table
 
 
 class Proxy(threading.Thread):
-    def __init__(self,q,db_file):
+    def __init__(self,db_file):
         # create logger
         self.logger = logging.getLogger('data base proxy')
         self.logger.setLevel(logging.INFO)
 
         self.input_q = queue.Queue(maxsize=1)
+        self.output_q = queue.Queue(maxsize=1)
         super(Proxy, self).__init__()
         # open database
 
-        file_name = db_file
+        self.db_name = db_file
         # 'C:\\Users\\yuval\\projects\\drop_box\\clients_files.db'
+
+    def run(self):
         try:
-            self.conn = lite.connect(file_name)
+            self.conn = lite.connect(self.db_name)
         except lite.Error:
             self.logger.critical("the database couldn't open ")
             sys.exit(1)
         finally:
             if self.conn:
                 self.logger.info("the database opened successfully ")
+                self.conn.execute(CREATE_FILE_TABLE_QUERY)
+                self.conn.execute(CREATE_PEER_TABLE_QUERY)
+                self.conn.execute(CREATE_PACK_TABLE_QUERY)
+                self.conn.execute(CREATE_FOREIGN_PACK_TABLE_QUERY)
+                self.conn.commit()
 
-                self.db_list_request([CREATE_FILE_TABLE_QUERY,
-                                      CREATE_PEER_TABLE_QUERY,
-                                      CREATE_PACK_TABLE_QUERY,
-                                      CREATE_FOREIGN_PACK_TABLE_QUERY])
-    def run(self):
+
         while True:
-            self.input_q.get()
+            (request, parameters)=self.input_q.get()
+
+
+
+
+            answer = self.conn.execute(request, parameters)
+            self.conn.commit()
+            self.output_q.put(answer.fetchall())
+
 
 
 
 class DatabaseMeneger:
-    def __init__(self, db_file):
+    def __init__(self,db_file,peers_list_file,my_peer):
         """
         meneger the sql database
         """
@@ -81,56 +91,48 @@ class DatabaseMeneger:
         self.logger = logging.getLogger('data base')
         self.logger.setLevel(logging.INFO)
 
-        self.db_lock = Lock()
+        self.proxy = Proxy(db_file)
+        self.proxy.start()
+        self.input_q = self.proxy.input_q
+        self.output_q=self.proxy.output_q
 
-        #open database
+        self.load_peers(peers_list_file,my_peer)
 
-
-        file_name = db_file
-        # 'C:\\Users\\yuval\\projects\\drop_box\\clients_files.db'
-        try:
-            self.conn = lite.connect(file_name)
-        except lite.Error:
-            self.logger.critical("the database couldn't open ")
-            sys.exit(1)
-        finally:
-            if self.conn:
-                self.logger.info("the database opened successfully ")
-
-                self.db_list_request([CREATE_FILE_TABLE_QUERY,
-                                      CREATE_PEER_TABLE_QUERY,
-                                      CREATE_PACK_TABLE_QUERY,
-                                      CREATE_FOREIGN_PACK_TABLE_QUERY])
 
     def db_request(self,request,parameters=tuple()):
-        self.db_lock.acquire()
-        answer=self.conn.execute(request, parameters)
-        self.conn.commit()
-        self.db_lock.release()
-        return answer
+        self.input_q.put([request,parameters])
+        return(self.output_q.get())
 
-    def db_list_request(self,request_list):
+    def db_list_request(self, request_list):
         '''
         get list of request
         '''
-        self.db_lock.acquire()
+
         for request in request_list:
             if type(request) == str:
+                self.input_q.put([request, tuple()])
+                answer = self.output_q.get()
 
-
-                answer=self.conn.execute(request)
             elif len(request) == 2:
-                answer=self.conn.execute(request[0],request[1])
-            self.conn.commit()
-        self.db_lock.release()
+
+                self.input_q.put([request[0], request[1]])
+                answer = self.output_q.get()
+
         return answer
+
+    def load_peers(self,peers_file_path,my_peer):
+        peers_file=open(peers_file_path)
+        peer_list=loads(peers_file.read())
+        for peer in peer_list:
+            if peer[0]!=my_peer[0] or peer[1]!=int(my_peer[1]):
+
+                self.add_peer(peer[0],peer[1])
 
     def get_parts_of_file(self,file_path):
 
-        #arr=self.conn.execute('''SELECT * FROM packs_table WHERE file_path=? ORDER BY pack_number''', (file_path,)).fetchall()
         arr=self.db_request('''SELECT hash,size, pack_number,peer_table._id , ip, port
         FROM (SELECT * FROM packs_table WHERE file_path=(?)) INNER JOIN peer_table
-        WHERE peer_id = peer_table._id ''',(file_path,)).fetchall()
+        WHERE peer_id = peer_table._id ''',(file_path,))
 
         arr2=[]
         hash_list=[]
@@ -142,50 +144,53 @@ class DatabaseMeneger:
 
     def get_peer_id(self,ip,port):
         exist_in_database = self.db_request('''SELECT _id FROM peer_table WHERE ip=? AND port=? LIMIT 1''',(ip,port))
-        a=exist_in_database.fetchone()
-        if a!=None:
-            return (a[0])
+        a=exist_in_database
+
+        if a!=[]:
+
+            return (a[0][0])
 
     def file_beckup_exist(self,path):
         '''
         if exist return last update else return False
         '''
-        exist_in_database = self.db_request('''SELECT path,last_update FROM file_table WHERE path=? LIMIT 1''', (path,)).fetchone()
-        if (exist_in_database == None):
+        exist_in_database = self.db_request('''SELECT path,last_update FROM file_table WHERE path=? LIMIT 1''', (path,))
+        if (exist_in_database == []):
             return (None)
         else:
-            return (exist_in_database[1])
+            return (exist_in_database[0][1])
 
     def pack_exist(self,hash):
         exist_in_database = self.db_request('''SELECT hash FROM packs_table WHERE hash=? LIMIT 1''',
-                                            (hash,)).fetchone()
+                                            (hash,))
         return(exist_in_database != None)
 
-    def add_file(self,hash_list,file_path,size,proportion,file_date,pack_size):
+    def add_file(self,file_path,proportion,file_date):
         '''
         add file to database
-        the hash list also include the peer ip, port
+        the hash list also include the peer ip
         last_update- last time updated the beckup
         '''
-        self.db_request('''INSERT INTO file_table (path,last_update,size, proportion_original,proportion_reed,file_date)
-                            VALUES (?,?,?,?,?,?)''',
-                            (file_path,time(),size,proportion["original"],proportion["reed"],file_date))
+        print(self.file_beckup_exist(file_path))
+        if self.file_beckup_exist(file_path) ==None:
 
-        i=0
+            self.db_request('''INSERT INTO file_table (path,last_update, proportion_original,proportion_reed,file_date)
+                            VALUES (?,?,?,?,?)''',
+                                (file_path,time(),proportion["normal"],proportion["reed5"],file_date))
 
-        for pack in hash_list:
-
+    def add_pack(self,file_path,hash,peer_id,pack_number,pack_size):
+        if self.db_request('''SELECT hash FROM packs_table WHERE hash=? LIMIT 1''', (hash,))==[]:
             self.db_request(
-                '''INSERT INTO packs_table (hash,file_path,peer_id, pack_number,size) VALUES (?,?,?,?,?)''',
-                (pack['hash'],file_path,pack['peer_id'],i,pack_size))
-
-            i+=1
+                '''INSERT INTO packs_table (hash,file_path, peer_id,pack_number,size) VALUES (?,?,?,?,?)''',
+                (hash, file_path, peer_id, pack_number, pack_size))
+        else: return('pack exist in database')
 
     def add_peer(self,ip,port):
         '''
         return the new peer_id
         '''
         id=self.get_peer_id(ip,port)
+
         if id==None:
 
             self.db_request('''INSERT INTO peer_table (ip,port)
@@ -204,12 +209,11 @@ class DatabaseMeneger:
         return(packs_to_delete)
 
     def get_ip_from_peer(self,peer_id):
-        print(peer_id)
-
-        a=self.db_request('''SELECT ip,port FROM peer_table WHERE _id=? LIMIT 1''', (peer_id,)).fetchone()
+        #print(peer_id)
+        a=self.db_request('''SELECT ip,port FROM peer_table WHERE _id=? LIMIT 1''', (peer_id,))
         dic={}
-        dic["ip"]=a[0]
-        dic["port"]=a[1]
+        dic["ip"]=a[0][0]
+        dic["port"]=a[0][1]
 
         return(dic)
 
@@ -217,7 +221,7 @@ class DatabaseMeneger:
         hash_list=self.get_parts_of_file(file_path)
 
         for pack in hash_list:
-            self.db_request('''DELETE FROM pack_table WHERE hash=?''',(pack['hash'],))
+            self.db_request('''DELETE FROM packs_table WHERE hash=?''',(pack['hash'],))
 
         self.db_request('''DELETE FROM file_table WHERE path=?''', (file_path,))
 
@@ -234,38 +238,66 @@ class DatabaseMeneger:
         '''return the total save file in every peer'''
         a=self.db_request(
             '''SELECT peer_id,sum(size) FROM packs_table GROUP BY peer_id ORDER BY sum(size)''')
-        return (a.fetchall())
+        return (a)
+
+    def zero_save_peer(self):
+        '''return the peers that dosent save your data'''
+        a=self.db_request(
+            ''' SELECT _id as peer_id FROM peer_table EXCEPT SELECT peer_id FROM packs_table''')
+        return ([i[0] for i in a])
 
     def total_save_files_size(self):
         '''return the total save file for all peers'''
         a = self.db_request(
             '''SELECT sum(size) FROM packs_table ''')
-        return (a.fetchone()[0])
+        ans=a[0][0]
+        if ans==None:
+            ans=0
+
+        return (ans)
 
     def files_in_dir(self,dir_path):
         a=self.db_request(
             "SELECT * from file_table WHERE path LIKE (?)",(dir_path+'[/\]%'))
-        return (a.fetchall())
+        return (a)
+
     def foreign_pack_exist(self,hash):
         '''if exist return the peer id'''
 
         exist_in_database = self.db_request('''SELECT hash,peer_id FROM foregn_packs_table WHERE hash=? LIMIT 1''',
-                                            (str(hash),)).fetchone()
-        if (exist_in_database != None):
-            return exist_in_database[1]
+                                            (str(hash),))
+        if (exist_in_database !=[]):
+
+            return exist_in_database[0][1]
         else:
             return False
 
 if __name__=='__main__':
-    data_base=DatabaseMeneger("C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_packages\\data_base.db")
 
-    for i in range(10):
-        data_base.add_peer('123.243.345.456',5000+i)
+    data_base = DatabaseMeneger("C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_packages\\data_base.db",
+                                                'C:\\Users\\yuval\\projects\\saiber_big_project\\source\\peers.json',
+                                                ['127.0.0.1', '5002'])
 
-    data_base.add_file([{'hash':'23324','peer_id':900},{'hash':'7324','peer_id':2},{'hash':'983433424','peer_id':4},{'hash':'3124','peer_id':5}],
-                       'c/f',2000000,{"original":16,"reed":9},time(),1024)
+    #print(data_base.total_save_files_size())
 
+
+
+    '''
+    data_base.add_file([{'hash':i,'peer_id':505} for i in ['23324','7324','983433424','3124']],
+                       'c/f',2000000,{"normal":16,"reed5":9},time(),1024)
+
+    data_base.add_file([{'hash': i, 'peer_id': 50} for i in ['724', '98343324', '314']],
+                       'c/y', 2000000, {"normal": 16, "reed5": 9}, time(), 1024)
+                       '''
+
+    #print(data_base.total_save_for_peer())
+    #print(data_base.zero_save_peer())
+    #data_base.add_file('file_path',{"normal": 16, "reed5": 9},time())
+
+
+"""
     print(data_base.get_parts_of_file('c/d'))
+
     print(data_base.get_peer_id('123.243.345.456',5555))
     print(data_base.file_beckup_exist('c/d'))
     print(data_base.get_ip_from_peer(3))
@@ -273,5 +305,4 @@ if __name__=='__main__':
     #print(data_base.total_save_files_size())
     print(data_base.foreign_pack_exist('test_pac'))
 
-
-
+"""
