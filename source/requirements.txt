@@ -1,0 +1,5 @@
+reedsolo
+cryptography
+Flask
+httplib2
+PyQt5

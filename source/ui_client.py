@@ -1,4 +1,5 @@
 import httplib2
+from json import loads,dumps
 #host = 'localhost'
 #host_port = 5000
 def set_host(host1,host_port1):
@@ -8,6 +9,7 @@ def set_host(host1,host_port1):
     host=host1
 
 def beckup_file(file_path):
+
 
     h = httplib2.Http()
     print(f"http://{host}:{host_port}/self/put_beckup/{file_path}")
@@ -23,7 +25,36 @@ def beckup_file(file_path):
     else:
         return("writen secsesfully")
 
+def disconect():
+    h = httplib2.Http()
+    try:
 
+        (response, content)=h.request(f"http://{host}:{host_port}/self/disconect","DELETE")
+
+    except (ConnectionRefusedError,TimeoutError):
+        return ('the peer refused')
+
+
+    return(response, content)
+
+def del_file(path):
+    h = httplib2.Http()
+    (response, content) = h.request(f"http://{host}:{host_port}/self/del_file/{path}", "DELETE")
+    return (content)
+
+def get_files_status(path):
+    h = httplib2.Http()
+    (response, content) = h.request(f"http://{host}:{host_port}/self/get_files_status/{path}", "GET")
+    #print(content)
+    return (loads(content))
+
+def serv_exist():
+    try:
+        h = httplib2.Http()
+        (response, content)=h.request(f"http://{host}:{host_port}/exist","GET")
+        return (content)
+    except:
+        return(False)
 
 if __name__ =='__main__':
     # the resever
@@ -35,7 +66,7 @@ if __name__ =='__main__':
 
     set_host('localhost', 5000)
 
-    print(beckup_file('C:/Users/yuval/projects/saiber_big_project/source/files_for_tests/test.txt'))
+   # print(beckup_file('C:/Users/yuval/projects/saiber_big_project/source/files_for_tests/test.txt'))
 
 
 
