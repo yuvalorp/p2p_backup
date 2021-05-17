@@ -71,9 +71,10 @@ if __name__=='__main__':
 
     logging.basicConfig(level=logging.INFO)
 
-    pack_path = r"C:\Users\yuval\projects\saiber_big_project\source\file_packages"
-    if not os.path.exists(pack_path):
-        os.mkdir(pack_path)
+    if not os.path.exists(saves_dir):
+        os.mkdir(saves_dir)
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
 
     #start the thredes
     database = database_maneger.DatabaseMeneger(database_path,peers_list_file,[host,host_port])

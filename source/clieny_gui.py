@@ -13,7 +13,7 @@ ip='127.0.0.1'
 port=5001
 
 try:
-    useless,ip,port=sys.argv
+    useless,port=sys.argv
     port=int(port)
 except:
     pass
