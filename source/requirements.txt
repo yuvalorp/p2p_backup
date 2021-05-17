@@ -3,3 +3,4 @@ cryptography
 Flask
 httplib2
 PyQt5
+logzio-python-handler

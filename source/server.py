@@ -93,6 +93,7 @@ def ask_per(hash):
     ip = request.args.get('ip')
     port = request.args.get('port')
     id = database.get_peer_id(ip, port)
+    logger.info(str((ip, port, id)))
     database.add_foregn_packs(id, hash, size)
 
     if id == None:
@@ -112,6 +113,7 @@ def put_pack (hash):
     ip = request.args.get('ip')
     port = request.args.get('port')
     id = database.get_peer_id(ip, port)
+
     if id==None:
         return (PEER_EXISTENS_ERROR)
 

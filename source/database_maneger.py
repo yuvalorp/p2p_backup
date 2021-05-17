@@ -121,6 +121,7 @@ class DatabaseMeneger:
         peers_file=open(peers_file_path)
         peer_list=loads(peers_file.read())
         for peer in peer_list:
+
             if peer[0]!=my_peer[0] or peer[1]!=int(my_peer[1]):
 
                 self.add_peer(peer[0],peer[1])

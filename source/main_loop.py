@@ -1,6 +1,8 @@
 import encoder
 import decoder
 import logging
+import logging_config
+import logging.config
 import server
 import database_maneger
 from sys import argv
@@ -8,30 +10,7 @@ import os
 import  time
 import ui_client
 from json import loads
-#encode/decode parneters
-r"""
-NUMBER_OF_ERRORS = 3  # number of errors that the reed5 will be able to fix
-PACKAGE_SIZE = 1024  # size of every package to send
 
-TIME_BETWEEN_BECKUPS=10 
-#files
-database_path="C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_packages\\data_base.db"
-key= '123456'
-saves_dir="C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_packages"
-peers_list_file='C:\\Users\\yuval\\projects\\saiber_big_project\\source\\peers.json'
-output_dir="C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_output"
-
-#server parameters
-MAX_SAVE_SIZE = 10000
-host_port = 5000
-
-mode='0'
-
-try:
-    (useless,mode,host_port,database_path,saves_dir,output_dir)=argv
-except:pass
-
-r"""
 #settings
 settings_path="settings.json"
 settings_file=open(settings_path)
@@ -65,11 +44,11 @@ threads = []
 if __name__=='__main__':
     #global threads
     #global main_loop_running
-    print(host_port)
+    print(host,host_port)
     if not os.path.exists(saves_dir):
         os.mkdir(saves_dir)
 
-    logging.basicConfig(level=logging.INFO)
+    logging.config.dictConfig(logging_config.get_config(host+'  '+str(host_port)))
 
     if not os.path.exists(saves_dir):
         os.mkdir(saves_dir)
@@ -85,7 +64,7 @@ if __name__=='__main__':
     split.start()
     threads.append(split)
 
-    serv = server.Server(saves_dir, database,output_dir, MAX_SAVE_SIZE, host_port,split.files_input,'127.0.0.1')
+    serv = server.Server(saves_dir, database,output_dir, MAX_SAVE_SIZE, host_port,split.files_input,host)
     serv.start()
 
     cryp = encoder.Crypto(split.packeg_q, key)
@@ -94,12 +73,12 @@ if __name__=='__main__':
     reed = encoder.AddReed5(PACKAGE_SIZE, NUMBER_OF_ERRORS, cryp.packet_output)
     reed.start()
 
-    sender=encoder.Sender(reed.reed5_q,saves_dir,reed.packeg_proportion,database,'127.0.0.1',host_port)
+    sender=encoder.Sender(reed.reed5_q,saves_dir,reed.packeg_proportion,database,host,host_port)
     sender.start()
 
     #===============================decoder
 
-    remove = decoder.RemoveReed5(saves_dir,database,'127.0.0.1',host_port,PACKAGE_SIZE, NUMBER_OF_ERRORS, reed.packeg_proportion)
+    remove = decoder.RemoveReed5(saves_dir,database,host,host_port,PACKAGE_SIZE, NUMBER_OF_ERRORS, reed.packeg_proportion)
     remove.start()
 
     dcryp = decoder.Crypto(remove.packet_output, key)
