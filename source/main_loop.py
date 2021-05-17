@@ -47,7 +47,7 @@ database_path=settings["database_path"]
 saves_dir=settings["saves_dir"]
 peers_list_file=settings["peers_list_file"]
 output_dir=settings["output_dir"]
-
+host=settings["host"]
 host_port=settings["host_port"]
 MAX_SAVE_SIZE=settings["MAX_SAVE_SIZE"]
 
@@ -76,7 +76,7 @@ if __name__=='__main__':
         os.mkdir(pack_path)
 
     #start the thredes
-    database = database_maneger.DatabaseMeneger(database_path,peers_list_file,['127.0.0.1',host_port])
+    database = database_maneger.DatabaseMeneger(database_path,peers_list_file,[host,host_port])
 
     # ===============================encoder
 

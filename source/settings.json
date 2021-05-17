@@ -7,6 +7,7 @@
   "peers_list_file": "C:\\Users\\yuval\\projects\\saiber_big_project\\source\\peers.json",
   "output_dir": "C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_output",
   "key": "123456",
-  "host_port": 5001,
+  "host": "192.168.123.218",
+  "host_port": 5000,
   "MAX_SAVE_SIZE": 10000
 }
