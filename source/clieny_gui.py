@@ -4,9 +4,14 @@ from PyQt5.QtWidgets import QFileDialog as FileDialog
 from os import path
 import ui_client
 import sys
+import logging
+
+logger = logging.getLogger('peer_server')
+logger.setLevel(logging.INFO)
 
 ip='127.0.0.1'
 port=5001
+
 try:
     useless,ip,port=sys.argv
     port=int(port)
@@ -15,7 +20,7 @@ except:
 
 ui_client.set_host(ip, port)
 if not ui_client.serv_exist():
-    print('cant connect to the server please try again later')
+    logger.critical('cant connect to the server please try again later')
     exit()
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -132,7 +137,7 @@ def disconnect():
     qm = QtWidgets.QMessageBox
     qm.question(ex, '', f"Are you sure you want to disconect ", qm.Yes | qm.No)
     if qm.Yes:
-        print('fisconecting')
+        logger.info('disconecting')
         ui_client.disconect()
         exit()
 def create_beckup():
@@ -172,7 +177,7 @@ def del_pack():
         qm=QtWidgets.QMessageBox
         qm.question(ex, '', f"Are you sure you want to del {selected_file}?", qm.Yes | qm.No)
         if qm.Yes:
-            print('delete')
+            logger.info(f'delete {selected_file}')
             ui_client.del_file(selected_file)
 
 def open_dir():
@@ -208,7 +213,6 @@ def show_dir():
     _translate = QtCore.QCoreApplication.translate
     ex.path_display.setText(_translate("MainWindow", c_path))
     files=ui_client.get_files_status(c_path)
-    #print(files)
 
     ex.files_list_display.clear()
     ex.files_list_display.addItems([a+'   '+b for a,b in files.items()])

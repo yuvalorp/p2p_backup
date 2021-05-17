@@ -7,6 +7,7 @@ from json import dumps
 from cryptography.hazmat.primitives import hashes
 from random import shuffle,seed
 from shutil import rmtree
+import logging
 app = Flask(__name__)
 
 pack_dir = 'C:/Users/yuval/projects/saiber_big_project/source/file_packages'
@@ -19,6 +20,10 @@ IP='127.0.0.1'
 
 PERMITION_ERROR="you dont have permition"
 PEER_EXISTENS_ERROR='the peer doesnt exist'
+
+logger = logging.getLogger('peer_server')
+logger.setLevel(logging.INFO)
+#logger.info
 
 @app.route('/return_pack/<hash>', methods=["GET"])
 def return_pack (hash):
@@ -34,7 +39,6 @@ def return_pack (hash):
         return ('I cant find the pack')
 
     if pack_peer_id !=id:
-        #print('you dont have permittion   ',pack_peer_id,'    ',id )
         return ('you dont have permittion')
 
     else:
@@ -42,7 +46,7 @@ def return_pack (hash):
         text=pack.read()
         pack.close()
 
-        #print(text[:10].hex())
+
         return (text)
 
 
@@ -52,7 +56,8 @@ def del_file (path):
     pack_list=database.get_parts_of_file(path)
 
     for pack in pack_list:
-        print(peer_client.del_pack(pack['hash'],pack['ip'],pack['port'], IP, port))
+        logger.info(peer_client.del_pack(pack['hash'],pack['ip'],pack['port'], IP, port))
+
     return ('deleted')
 
 @app.route('/del_pack/<hash>', methods=["DELETE"])
@@ -73,7 +78,7 @@ def del_pack (hash):
     if not exist:
         return ('the pack doesnt exist')
     else:
-        print("delete "+pack_dir+'\\'+hash)
+        logger.info("delete "+pack_dir+'\\'+hash)
         os.remove(pack_dir+'\\'+hash)
         database.del_foregn_packs(hash)
         return ('deleted')
@@ -88,9 +93,7 @@ def ask_per(hash):
     ip = request.args.get('ip')
     port = request.args.get('port')
     id = database.get_peer_id(ip, port)
-    #print('id   ',ip,'   ', port)
     database.add_foregn_packs(id, hash, size)
-    #print(ip,port,id,size)
 
     if id == None:
         return ('the peer doesnt exist')
@@ -113,7 +116,6 @@ def put_pack (hash):
         return (PEER_EXISTENS_ERROR)
 
     have_permittion =database.foreign_pack_exist(hash)
-    #print(hash,database.foreign_pack_exist(hash))
     exist=os.path.exists(os.path.join(pack_dir, hash))
     if (not have_permittion ):
         return (PERMITION_ERROR)
@@ -134,7 +136,7 @@ def put_pack (hash):
 @app.route('/self/disconect', methods=["DELETE"])
 def send_disconnect():
     '''delete all files and data related to this peer'''
-    print("disconecting")
+    logger.info("disconecting")
     list_of_packs=database.all_foregn_packs()
 
     for j in list_of_packs:
@@ -171,9 +173,9 @@ def send_disconnect():
 
                         break
                     else:
-                        print(f"peer {peer} refused answer: {answer}")
+                        logger.info(f"peer {peer} refused answer: {answer}")
                 else:
-                    print(f"peer {peer} refused answer: {answer}")
+                    logger.info(f"peer {peer} refused answer: {answer}")
 
 
 
@@ -183,13 +185,12 @@ def send_disconnect():
         host_port = peer[1]
         host = peer[0]
 
-        print(peer_client.send_disconnect(host, host_port, IP, port))
+        logger.info(peer_client.send_disconnect(host, host_port, IP, port))
 
-    print("deleted_files")
+    logger.info("deleted_files")
     rmtree (pack_dir)
-    print('remove'+str(pack_dir))
+    logger.info('remove'+str(pack_dir))
 
-    os.remove(db_name)
     return 'goodbye'
 
 @app.route('/exist', methods=["GET"])
@@ -268,7 +269,7 @@ def get_files_status(dir_path):
             files[f[0]]="bacuped"
         else:
             files[f[0]]="needs_reconstruction"
-    #print(files)
+
     ret=dumps(files)
     return(ret)
 
