@@ -224,16 +224,3 @@ class Uniter(threading.Thread):
                 write_file.write(pack)
             write_file.close()
 
-
-if __name__ == '__main__':
-
-    key_file_path = r'C:\Users\yuval\projects\saiber_big_project\source\passward.txt'
-    data_base = DatabaseMeneger("C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_packages\\data_base.db")
-
-    remove=RemoveReed5("C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_packages",
-                PACKAGE_SIZE,NUMBER_OF_ERRORS,{"normal": 16, "reed5": 9})
-    crypt=Crypto(remove.packet_output,key_file_path)
-    unit = Uniter("C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_output",
-                  crypt.packet_output)
-
-

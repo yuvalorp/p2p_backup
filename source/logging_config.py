@@ -6,7 +6,7 @@ def get_config(peer_id):
         'disable_existing_loggers': False,
         'formatters': {
             'logzioFormat': {
-                'format': '{ "peer_id": "' + peer_id + '" }',
+                'format': '{ "peer ip + port": "' + peer_id + '" }',
                 'validate': False
             },
             'brief': {

@@ -7,18 +7,16 @@ import sys
 import logging
 
 logger = logging.getLogger('peer_server')
-logger.setLevel(logging.INFO)
+#logger.setLevel(logging.INFO)
 
-ip='127.0.0.1'
-port=5001
 
-try:
-    useless,port=sys.argv
-    port=int(port)
-except:
-    pass
+settings_path="settings.json"
+settings_file=open(settings_path)
+settings=loads(settings_file.read())
+settings_file.close()
+port=settings["host_port"]
+ui_client.set_host('127.0.0.1', port)
 
-ui_client.set_host(ip, port)
 if not ui_client.serv_exist():
     logger.critical('cant connect to the server please try again later')
     exit()

@@ -303,24 +303,3 @@ class Sender(threading.Thread):
 
         return (q.hex())
 
-if __name__ == '__main__':
-    database_path="C:\\Users\\yuval\\projects\\saiber_big_project\\source\\file_packages\\data_base.db"
-    key_file_path = r'C:\Users\yuval\projects\saiber_big_project\source\passward.txt'
-    database = database_maneger.DatabaseMeneger(database_path,'C:\\Users\\yuval\\projects\\saiber_big_project\\source\\peers.json',['127.0.0.1','5002'])
-    logging.basicConfig(level=logging.INFO)
-    split = Splitter(PACKAGE_SIZE )
-    split.files_input.put("C:\\Users\\yuval\\projects\\saiber_big_project\\source\\files_for_tests\\test2.jpg")
-    #split.files_input.put("C:\\Users\\yuval\\projects\\saiber_big_project\\source\\test.txt")
-
-    cryp = Crypto(split.packeg_q,key_file_path)
-
-    reed = AddReed5(PACKAGE_SIZE, NUMBER_OF_ERRORS,cryp.packet_output)
-
-
-
-
-    split.start()
-    cryp.start()
-
-    reed.start()
-

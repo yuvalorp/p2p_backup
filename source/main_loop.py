@@ -22,13 +22,16 @@ PACKAGE_SIZE=settings["PACKAGE_SIZE"]
 TIME_BETWEEN_BECKUPS=settings["TIME_BETWEEN_BECKUPS"]# time between becups in days
 TIME_BETWEEN_BECKUPS=TIME_BETWEEN_BECKUPS*86400#number of secends in one day
 
-database_path=settings["database_path"]
-saves_dir=settings["saves_dir"]
-peers_list_file=settings["peers_list_file"]
-output_dir=settings["output_dir"]
+project_path=settings["project_path"]
+database_path=os.path.join(project_path,settings["database_path"])
+saves_dir=os.path.join(project_path,settings["saves_dir"])
+peers_list_file=os.path.join(project_path,settings["peers_list_file"])
+output_dir=os.path.join(project_path,settings["output_dir"])
 host=settings["host"]
 host_port=settings["host_port"]
 MAX_SAVE_SIZE=settings["MAX_SAVE_SIZE"]
+
+
 
 key=settings["key"]
 
