@@ -32,7 +32,6 @@ host_port=settings["host_port"]
 MAX_SAVE_SIZE=settings["MAX_SAVE_SIZE"]
 
 
-
 key=settings["key"]
 
 key=str.encode(key)
@@ -52,6 +51,9 @@ if __name__=='__main__':
         os.mkdir(saves_dir)
 
     logging.config.dictConfig(logging_config.get_config(host+'  '+str(host_port)))
+
+    logger = logging.getLogger('main')
+    logger.info('main_loop is running')
 
     if not os.path.exists(saves_dir):
         os.mkdir(saves_dir)

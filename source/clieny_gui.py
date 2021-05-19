@@ -5,6 +5,7 @@ from os import path
 import ui_client
 import sys
 import logging
+from json import loads
 
 logger = logging.getLogger('peer_server')
 #logger.setLevel(logging.INFO)
@@ -27,7 +28,7 @@ class Ui_MainWindow(object):
 
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(850, 750)
+        MainWindow.resize(800, 750)
         font = QtGui.QFont()
         font.setPointSize(12)
         MainWindow.setFont(font)
@@ -51,13 +52,13 @@ class Ui_MainWindow(object):
         self.path_display.setObjectName("path_display")
 
         self.files_list_display = QtWidgets.QListWidget(self.centralwidget)
-        self.files_list_display.setGeometry(QtCore.QRect(20, 200, 600, 400))
+        self.files_list_display.setGeometry(QtCore.QRect(20, 200, 700, 400))
         self.files_list_display.setObjectName("files_list_display")
         self.files_list_display.itemClicked.connect(choose_file)#Double
 
 
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(20, 620, 800, 80))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(20, 620, 750, 80))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -150,7 +151,7 @@ def create_beckup():
     
     elif selected_file_stat=='directory' or path.isdir(selected_file) :
         showDialog("error", "can becup only files not directorys")
-    elif selected_file_stat!='backuped':
+    elif selected_file_stat=='backuped':
         showDialog("error", "the file doesnt have backup")
     ui_client.beckup_file(selected_file)
 
@@ -181,9 +182,11 @@ def del_pack():
 def open_dir():
     global selected_file
     global c_path
-    c_path=selected_file+""
-
-    show_dir()
+    if path.isfile(c_path+selected_file):
+        showDialog("error", "you can open only directories ")
+    else:
+        c_path=selected_file+""
+        show_dir()
 
 def choose_file(item):
     global selected_file
@@ -202,19 +205,22 @@ def choose_dir():
     #fileName, _ = FileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "",
     #                                          "All Files (*);;Python Files (*.py)", options=options)
     fileName =  FileDialog.getExistingDirectory(None,"Choose Directory",c_path)
-    c_path=path.dirname(fileName)
-    show_dir()
+    if fileName!="":
+        c_path=path.dirname(fileName)
+        show_dir()
 
 def show_dir():
     global c_path
     global ex
     _translate = QtCore.QCoreApplication.translate
-    ex.path_display.setText(_translate("MainWindow", c_path))
-    files=ui_client.get_files_status(c_path)
 
+    ex.path_display.setText(_translate("MainWindow", c_path))
+
+    files=ui_client.get_files_status(c_path)
     ex.files_list_display.clear()
     ex.files_list_display.addItems([a+'   '+b for a,b in files.items()])
     ex.files_list_display.repaint()
+
 
 def showDialog(title,mesege):
     msgBox = QtWidgets.QMessageBox()

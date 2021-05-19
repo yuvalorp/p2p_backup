@@ -1,7 +1,7 @@
 import httplib2
 
 def return_pack(file_hash,host,host_port,ip,port):
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
 
     try:
         (response, content)=h.request(f"http://{host}:{host_port}/return_pack/{file_hash}?ip={ip}&port={port}","GET")
@@ -16,7 +16,7 @@ def return_pack(file_hash,host,host_port,ip,port):
         return (True,content)
 
 def delete_pack(file_hash,host,host_port,ip,port):
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
 
     try:
         (response, content)=h.request(f"http://{host}:{host_port}/del_pack/{file_hash}?ip={ip}&port={port}","DELETE")
@@ -29,7 +29,7 @@ def delete_pack(file_hash,host,host_port,ip,port):
 def ask_per(file_size,file_hash,host,host_port,ip,port):
     #ask permittion to save a pack
 
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
 
     try:
         (response, content)=h.request(f"http://{host}:{host_port}/ask_per/{file_hash}?size={file_size}&ip={ip}&port={port}","PUT")
@@ -45,7 +45,7 @@ def ask_per(file_size,file_hash,host,host_port,ip,port):
 
 def put_pack(text,file_hash,host,host_port,ip,port):
 
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
 
     try:
         (response, content) = h.request(f"http://{host}:{host_port}/put_pack/{file_hash}?ip={ip}&port={port}",
@@ -64,7 +64,7 @@ def put_pack(text,file_hash,host,host_port,ip,port):
 
 def del_peer(host_port,ip,port):
     '''say to the server about disconection'''
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     try:
         (response, content) = h.request(f"http://{host}:{host_port}/del_peer?ip={ip}&port={port}","PUT")
 
@@ -75,7 +75,7 @@ def del_peer(host_port,ip,port):
 
 def del_pack(pack_hash,host,host_port,ip,port):
 
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     print(f"http://{host}:{host_port}/del_pack/{pack_hash}?ip={ip}&port={port}")
 
     (response, content)=h.request(f"http://{host}:{host_port}/del_pack/{pack_hash}?ip={ip}&port={port}","DELETE")
@@ -84,20 +84,20 @@ def del_pack(pack_hash,host,host_port,ip,port):
 
 def send_disconnect(host,host_port,ip,port):
 
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     (response, content)=h.request(f"http://{host}:{host_port}/disconect?ip={ip}&port={port}","DELETE")
     return (content)
 
 def moved_pack(host,host_port,ip,port,pack_hash,new_ip,new_port):
     '''send that the pack with the hash "pack_hash" moved to new_ip,new_port'''
 
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     (response, content)=h.request(f"http://{host}:{host_port}/moved_pack?ip={ip}&port={port}&hash={pack_hash}&new_ip={new_ip}&new_port={new_port}","PUT")
     return (content)
 
 def exist(host,host_port):
     try:
-        h = httplib2.Http()
+        h = httplib2.Http(timeout=1)
         (response, content)=h.request(f"http://{host}:{host_port}/exist","GET")
         return (content)
     except:

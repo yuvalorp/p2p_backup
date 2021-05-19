@@ -11,7 +11,7 @@ def set_host(host1,host_port1):
 def beckup_file(file_path):
 
 
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     print(f"http://{host}:{host_port}/self/put_beckup/{file_path}")
     try:
 
@@ -26,7 +26,7 @@ def beckup_file(file_path):
         return("writen secsesfully")
 
 def disconect():
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     try:
 
         (response, content)=h.request(f"http://{host}:{host_port}/self/disconect","DELETE")
@@ -38,12 +38,12 @@ def disconect():
     return(response, content)
 
 def del_file(path):
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     (response, content) = h.request(f"http://{host}:{host_port}/self/del_file/{path}", "DELETE")
     return (content)
 
 def get_files_status(path):
-    h = httplib2.Http()
+    h = httplib2.Http(timeout=1)
     (response, content) = h.request(f"http://{host}:{host_port}/self/get_files_status/{path}", "GET")
     #print(content)
     return (loads(content))
