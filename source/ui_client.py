@@ -1,7 +1,7 @@
 import httplib2
 from json import loads,dumps
-#host = 'localhost'
-#host_port = 5000
+from socket import timeout as socket_timeout
+
 def set_host(host1,host_port1):
     global host_port
     global host
@@ -12,12 +12,11 @@ def beckup_file(file_path):
 
 
     h = httplib2.Http(timeout=1)
-    print(f"http://{host}:{host_port}/self/put_beckup/{file_path}")
     try:
 
         (response, content)=h.request(f"http://{host}:{host_port}/self/put_beckup/{file_path}","PUT")
 
-    except (ConnectionRefusedError,TimeoutError):
+    except (ConnectionRefusedError, socket_timeout,httplib2.ServerNotFoundError):
         return ('the peer refused')
 
     if content!="writen secsesfully":
@@ -31,7 +30,7 @@ def disconect():
 
         (response, content)=h.request(f"http://{host}:{host_port}/self/disconect","DELETE")
 
-    except (ConnectionRefusedError,TimeoutError):
+    except (ConnectionRefusedError, socket_timeout,httplib2.ServerNotFoundError):
         return ('the peer refused')
 
 
@@ -39,14 +38,20 @@ def disconect():
 
 def del_file(path):
     h = httplib2.Http(timeout=1)
-    (response, content) = h.request(f"http://{host}:{host_port}/self/del_file/{path}", "DELETE")
-    return (content)
+    try:
+        (response, content) = h.request(f"http://{host}:{host_port}/self/del_file/{path}", "DELETE")
+        return (content)
+    except (ConnectionRefusedError, socket_timeout,httplib2.ServerNotFoundError):
+        return ('the peer refused')
 
 def get_files_status(path):
     h = httplib2.Http(timeout=1)
-    (response, content) = h.request(f"http://{host}:{host_port}/self/get_files_status/{path}", "GET")
-    #print(content)
-    return (loads(content))
+
+    try:
+        (response, content) = h.request(f"http://{host}:{host_port}/self/get_files_status/{path}", "GET")
+        return (loads(content))
+    except :
+        return ('the peer refused')
 
 def serv_exist():
     try:

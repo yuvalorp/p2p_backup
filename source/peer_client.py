@@ -1,5 +1,5 @@
 import httplib2
-
+from socket import timeout as socket_timeout
 def return_pack(file_hash,host,host_port,ip,port):
     h = httplib2.Http(timeout=1)
 
@@ -7,7 +7,7 @@ def return_pack(file_hash,host,host_port,ip,port):
         (response, content)=h.request(f"http://{host}:{host_port}/return_pack/{file_hash}?ip={ip}&port={port}","GET")
 
 
-    except (ConnectionRefusedError, TimeoutError,httplib2.ServerNotFoundError) as e:
+    except (ConnectionRefusedError, socket_timeout,httplib2.ServerNotFoundError) as e:
         return (type(False,e))
 
     if content == b'I cant find the pack' or content == 'you dont have permittion':
@@ -20,10 +20,11 @@ def delete_pack(file_hash,host,host_port,ip,port):
 
     try:
         (response, content)=h.request(f"http://{host}:{host_port}/del_pack/{file_hash}?ip={ip}&port={port}","DELETE")
+        return content
 
-    except (ConnectionRefusedError, TimeoutError,httplib2.ServerNotFoundError) as e:
+    except (ConnectionRefusedError, socket_timeout,httplib2.ServerNotFoundError) as e:
         return (e)
-    return(content)
+
 
 
 def ask_per(file_size,file_hash,host,host_port,ip,port):
@@ -34,13 +35,13 @@ def ask_per(file_size,file_hash,host,host_port,ip,port):
     try:
         (response, content)=h.request(f"http://{host}:{host_port}/ask_per/{file_hash}?size={file_size}&ip={ip}&port={port}","PUT")
 
-    except (ConnectionRefusedError, TimeoutError,httplib2.ServerNotFoundError) as e:
+    except (ConnectionRefusedError,socket_timeout,httplib2.ServerNotFoundError) as e:
         return (type(e))
-
-    if content != b"True":
-        return (content)
     else:
-        return (True)
+        if content != b"True":
+            return (content)
+        else:
+            return (True)
 
 
 def put_pack(text,file_hash,host,host_port,ip,port):
@@ -53,13 +54,13 @@ def put_pack(text,file_hash,host,host_port,ip,port):
                                         headers={'content-length': str(len(text))})
 
 
-    except (ConnectionRefusedError, TimeoutError, httplib2.ServerNotFoundError) as e:
+    except (ConnectionRefusedError, socket_timeout, httplib2.ServerNotFoundError) as e:
         return (type(e))
-
-    if content != "writen secsesfully":
-        return (content)
     else:
-        return ("writen secsesfully")
+        if content != "writen secsesfully":
+            return (content)
+        else:
+            return ("writen secsesfully")
 
 
 def del_peer(host_port,ip,port):
@@ -67,33 +68,47 @@ def del_peer(host_port,ip,port):
     h = httplib2.Http(timeout=1)
     try:
         (response, content) = h.request(f"http://{host}:{host_port}/del_peer?ip={ip}&port={port}","PUT")
+        return content
 
-    except (ConnectionRefusedError, TimeoutError, httplib2.ServerNotFoundError) as e:
+    except (ConnectionRefusedError, socket_timeout, httplib2.ServerNotFoundError) as e:
         return (type(e))
-    return (content)
 
 
 def del_pack(pack_hash,host,host_port,ip,port):
 
     h = httplib2.Http(timeout=1)
-    print(f"http://{host}:{host_port}/del_pack/{pack_hash}?ip={ip}&port={port}")
 
-    (response, content)=h.request(f"http://{host}:{host_port}/del_pack/{pack_hash}?ip={ip}&port={port}","DELETE")
 
-    return (content)
+    try:
+        (response, content)=h.request(f"http://{host}:{host_port}/del_pack/{pack_hash}?ip={ip}&port={port}","DELETE")
+        return content
+
+    except (ConnectionRefusedError, socket_timeout, httplib2.ServerNotFoundError) as e:
+        return (type(e))
 
 def send_disconnect(host,host_port,ip,port):
 
     h = httplib2.Http(timeout=1)
-    (response, content)=h.request(f"http://{host}:{host_port}/disconect?ip={ip}&port={port}","DELETE")
-    return (content)
+
+    try:
+        (response, content)=h.request(f"http://{host}:{host_port}/disconect?ip={ip}&port={port}","DELETE")
+        return content
+
+    except (ConnectionRefusedError, socket_timeout, httplib2.ServerNotFoundError) as e:
+        return (type(e))
+
 
 def moved_pack(host,host_port,ip,port,pack_hash,new_ip,new_port):
     '''send that the pack with the hash "pack_hash" moved to new_ip,new_port'''
 
     h = httplib2.Http(timeout=1)
-    (response, content)=h.request(f"http://{host}:{host_port}/moved_pack?ip={ip}&port={port}&hash={pack_hash}&new_ip={new_ip}&new_port={new_port}","PUT")
-    return (content)
+    try:
+        (response, content)=h.request(f"http://{host}:{host_port}/moved_pack?ip={ip}&port={port}&hash={pack_hash}&new_ip={new_ip}&new_port={new_port}","PUT")
+        return content
+
+    except (ConnectionRefusedError, socket_timeout, httplib2.ServerNotFoundError) as e:
+        return (type(e))
+
 
 def exist(host,host_port):
     try:
