@@ -104,7 +104,7 @@ def ask_per(hash):
     size=int(size)
     if size+current_saves < MAX_SAVE_SIZE:
         database.add_foregn_packs(id, hash, size)
-    logger.info(size,current_saves,MAX_SAVE_SIZE,str(size+current_saves < MAX_SAVE_SIZE))
+    logger.info(str((size,current_saves,MAX_SAVE_SIZE,str(size+current_saves < MAX_SAVE_SIZE)) ) )
     return str(size+current_saves < MAX_SAVE_SIZE)
 
 
