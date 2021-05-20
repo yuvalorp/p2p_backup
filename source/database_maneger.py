@@ -272,7 +272,7 @@ class DatabaseMeneger:
     def total_save_files_size(self):
         '''return the total save file for all peers'''
         a = self.db_request(
-            '''SELECT sum(size) FROM packs_table ''')
+            '''SELECT sum(size) FROM foregn_packs_table ''')
         ans=a[0][0]
         if ans==None:
             ans=0
