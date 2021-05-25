@@ -205,9 +205,7 @@ def moved_pack():
     '''delete all files and data related to this peer and find new place for them'''
     host = request.args.get('ip')
     host_port = request.args.get('port')
-
     pack_hash = request.args.get('hash')
-
     new_ip = request.args.get('new_ip')
     new_port = request.args.get('new_port')
 
@@ -276,7 +274,7 @@ def get_files_status(dir_path):
     return(ret)
 
 class Server(threading.Thread):
-    def __init__(self,pack_dir1, database1,dir_to_write1, MAX_SAVE_SIZE1, host_port1,encoder_input,ip):
+    def __init__(self,pack_dir1, database1,dir_to_write1, MAX_SAVE_SIZE1, host_port1,encoder_input,decoder_input,ip):
         global dir_to_write
         global pack_dir
         global database

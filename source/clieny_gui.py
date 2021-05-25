@@ -113,6 +113,7 @@ class Ui_MainWindow(object):
         self.open_but.clicked.connect(open_dir)
         self.path_display.clicked.connect(choose_dir)
         self.create_but.clicked.connect(create_beckup)
+        self.recover_but.clicked.connect(recover)
         self.disconnect_but.clicked.connect(disconnect)
 
 
@@ -139,6 +140,17 @@ def disconnect():
         logger.info('disconecting')
         ui_client.disconect()
         exit()
+def recover():
+    global selected_file
+    global selected_file_stat
+    
+    if selected_file_stat=='directory' or path.isdir(selected_file) :
+        showDialog("error", "this is directory")
+    elif selected_file_stat=='doesnt_backuped':
+        showDialog("error", "the file doesnt have backup")
+    else:
+        recover(file_path)
+        
 def create_beckup():
     global selected_file
     global selected_file_stat
@@ -152,8 +164,9 @@ def create_beckup():
     elif selected_file_stat=='directory' or path.isdir(selected_file) :
         showDialog("error", "can becup only files not directorys")
     elif selected_file_stat=='backuped':
-        showDialog("error", "the file doesnt have backup")
-    ui_client.beckup_file(selected_file)
+        showDialog("error", "the file have backup")
+    else:
+        ui_client.beckup_file(selected_file)
 
 def back():
     global c_path
@@ -182,7 +195,7 @@ def del_pack():
 def open_dir():
     global selected_file
     global c_path
-    if path.isfile(c_path+selected_file):
+    if path.isfile(path.join(selected_file)):
         showDialog("error", "you can open only directories ")
     else:
         c_path=selected_file+""
@@ -200,13 +213,15 @@ def choose_dir():
     #item
     global c_path
     global ex
+    global selected_file
     options = FileDialog.Options()
     options |= FileDialog.DontUseNativeDialog
     #fileName, _ = FileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "",
     #                                          "All Files (*);;Python Files (*.py)", options=options)
     fileName =  FileDialog.getExistingDirectory(None,"Choose Directory",c_path)
     if fileName!="":
-        c_path=path.dirname(fileName)
+        c_path=fileName+""
+        selected_file=fileName+""
         show_dir()
 
 def show_dir():
@@ -217,6 +232,9 @@ def show_dir():
     ex.path_display.setText(_translate("MainWindow", c_path))
 
     files=ui_client.get_files_status(c_path)
+    for a,b in files.items():
+       print(a+'   '+b)
+    print()
     ex.files_list_display.clear()
     ex.files_list_display.addItems([a+'   '+b for a,b in files.items()])
     ex.files_list_display.repaint()

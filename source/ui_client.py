@@ -10,7 +10,6 @@ def set_host(host1,host_port1):
 
 def beckup_file(file_path):
 
-
     h = httplib2.Http(timeout=1)
     try:
 
@@ -24,6 +23,24 @@ def beckup_file(file_path):
     else:
         return("writen secsesfully")
 
+		
+		
+def recover(file_path):
+
+    h = httplib2.Http(timeout=1)
+    try:
+
+        (response, content)=h.request(f"http://{host}:{host_port}/self/recover/{file_path}","GET")
+
+    except (ConnectionRefusedError, socket_timeout,httplib2.ServerNotFoundError):
+        return ('the peer refused')
+
+    if content!="writen secsesfully":
+        return ('the peer refused')
+    else:
+        return("writen secsesfully")
+
+		
 def disconect():
     h = httplib2.Http(timeout=1)
     try:

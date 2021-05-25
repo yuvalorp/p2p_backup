@@ -5,7 +5,7 @@ import sys
 from json import loads
 import threading
 import queue
-
+from os import path
 
 CREATE_FILE_TABLE_QUERY = '''CREATE TABLE IF NOT EXISTS file_table (
      path VARCHAR(512) PRIMARY KEY,
@@ -280,8 +280,13 @@ class DatabaseMeneger:
 
     def files_in_dir(self,dir_path):
         a=self.db_request(
-            "SELECT * from file_table WHERE path LIKE (?)",(dir_path+'[/\]%',))
-        return (a)
+            "SELECT * from file_table WHERE path LIKE (?)",(dir_path+r'\%',))
+        b=self.db_request("SELECT * from file_table WHERE path LIKE (?)",(dir_path+r'/%',))
+        s=[]
+        for q in a+b:
+           if path.basename(q)==dir_path:
+              s.append(q+"")
+        return (s)
 
     def foreign_pack_exist(self,hash):
         '''if exist return the peer id'''

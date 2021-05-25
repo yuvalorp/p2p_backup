@@ -1,8 +1,8 @@
 import encoder
 import decoder
 import logging
-import logging_config
-import logging.config
+#import logging_config
+#import logging.config
 import server
 import database_maneger
 from sys import argv
@@ -50,8 +50,8 @@ if __name__=='__main__':
     if not os.path.exists(saves_dir):
         os.mkdir(saves_dir)
 
-    logging.config.dictConfig(logging_config.get_config(host+'  '+str(host_port)))
-
+    #logging.config.dictConfig(logging_config.get_config(host+'  '+str(host_port)))
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
     logger.info('main_loop is running')
 
@@ -69,8 +69,6 @@ if __name__=='__main__':
     split.start()
     threads.append(split)
 
-    serv = server.Server(saves_dir, database,output_dir, MAX_SAVE_SIZE, host_port,split.files_input,host)
-    serv.start()
 
     cryp = encoder.Crypto(split.packeg_q, key)
     cryp.start()
@@ -93,6 +91,9 @@ if __name__=='__main__':
     unit.start()
 
     ui_client.set_host('127.0.0.1', int(host_port))
+	
+    serv = server.Server(saves_dir, database,output_dir, MAX_SAVE_SIZE, host_port,split.files_input,remove.files_input,host)
+    serv.start()
 
     # ============================runing modes
     
