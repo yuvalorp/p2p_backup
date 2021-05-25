@@ -25,9 +25,9 @@ def beckup_file(file_path):
 
 		
 		
-def recover(file_path):
-
+def http_recover(file_path):
     h = httplib2.Http(timeout=1)
+
     try:
 
         (response, content)=h.request(f"http://{host}:{host_port}/self/recover/{file_path}","GET")

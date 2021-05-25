@@ -244,32 +244,48 @@ def put_beckup(filename):
     '''create beckup'''
     ENCODER_INPUT.put(filename)
     return ("beckup "+filename)
-
+    
+@app.route('/self/recover/<path:filename>', methods=["GET"])
+def recover(filename):
+    '''create beckup'''
+    if filename in [i[0] for i in database.get_all_files()]:
+        DECODER_INPUT.put(filename)
+        return ("recover "+filename)
+    else:
+        return("file doesnt exist")
+    
 @app.route('/self/get_files_status/<path:dir_path>', methods=["GET"])
 def get_files_status(dir_path):
     '''return list of all the files in a dir and their status'''
     global dir_to_write
     if not os.path.exists(dir_path):
         return ('{}')
-    files={}
-    beckuped=database.files_in_dir(dir_path)
-    in_dir=os.listdir(dir_path)+os.listdir(dir_to_write)
-    in_dir2=[os.path.join(dir_path,i) for i in in_dir]
 
-    print(in_dir)
-    print(in_dir2)
-    print()
-    for f in in_dir2:
-        if os.path.isdir(f):
+    files={}
+    backuped_path=database.files_in_dir(dir_path)
+    
+    backuped=[os.path.basename(q) for q in backuped_path]
+    
+    in_dir=os.listdir(dir_path)
+    for f in in_dir:
+        if os.path.isdir(os.path.join(dir_path,f)):
             files[f]="directory"
         else:
             files[f]='doesnt_backuped'
-
-    for f in beckuped:
-        if f[0] in in_dir:
-            files[f[0]]="bacuped"
+            
+    in_dir=os.listdir(dir_to_write)
+    for f in in_dir:
+        if os.path.isdir(os.path.join(dir_to_write,f)):
+            files[f]="directory"
         else:
-            files[f[0]]="needs_reconstruction"
+            files[f]='doesnt_backuped'
+            
+    in_dir=os.listdir(dir_path)+os.listdir(dir_to_write)
+    for f in backuped:
+        if f in in_dir:
+            files[f]="backuped"
+        else:
+            files[f]="needs_reconstruction"
 
     ret=dumps(files)
     return(ret)
@@ -282,6 +298,7 @@ class Server(threading.Thread):
         global MAX_SAVE_SIZE
         global port
         global ENCODER_INPUT
+        global DECODER_INPUT
         global IP
 
         super(Server, self).__init__()
@@ -293,6 +310,7 @@ class Server(threading.Thread):
         IP=ip
         database = database1
         ENCODER_INPUT=encoder_input
+        DECODER_INPUT=decoder_input
 
     def run(self):
         app.run(host='0.0.0.0', port=port)

@@ -8,7 +8,7 @@ def return_pack(file_hash,host,host_port,ip,port):
 
 
     except (ConnectionRefusedError, socket_timeout,httplib2.ServerNotFoundError) as e:
-        return (type(False,e))
+        return (False,type(e))
 
     if content == b'I cant find the pack' or content == 'you dont have permittion':
         return (False,content)

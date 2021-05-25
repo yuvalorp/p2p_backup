@@ -279,13 +279,14 @@ class DatabaseMeneger:
         return (ans)
 
     def files_in_dir(self,dir_path):
-        a=self.db_request(
-            "SELECT * from file_table WHERE path LIKE (?)",(dir_path+r'\%',))
-        b=self.db_request("SELECT * from file_table WHERE path LIKE (?)",(dir_path+r'/%',))
+        dir_path=dir_path.replace('\\','/')
+        a=self.db_request( "SELECT * from file_table")
         s=[]
-        for q in a+b:
-            if path.dirname(q[0])==dir_path:
-                s.append(q+"")
+        for q in a:
+            w=path.dirname(q[0]).replace('\\','/')
+            
+            if w==dir_path:
+                s.append(q[0]+"")
         return (s)
 
     def foreign_pack_exist(self,hash):

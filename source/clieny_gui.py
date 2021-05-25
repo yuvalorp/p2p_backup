@@ -29,7 +29,8 @@ class Ui_MainWindow(object):
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 750)
-        font = QtGui.QFont("Monospace",12)
+        font = QtGui.QFont()
+        font.setPointSize(12)
 
         MainWindow.setFont(font)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -148,13 +149,13 @@ def disconnect():
 def recover():
     global selected_file
     global selected_file_stat
-    
-    if selected_file_stat=='directory' or path.isdir(selected_file) :
+
+    if selected_file_stat=='directory':
         showDialog("error", "this is directory")
     elif selected_file_stat=='doesnt_backuped':
         showDialog("error", "the file doesnt have backup")
     else:
-        recover(selected_file)
+        print(ui_client.http_recover(selected_file))
         
 def create_beckup():
     global selected_file
@@ -210,10 +211,11 @@ def choose_file(item):
     global c_path
     global selected_file
     global selected_file_stat
-    selected_file=path.join(c_path,item.text())
-    selected_file = selected_file.split("  ")
-    selected_file_stat=selected_file[-1]
-    selected_file=selected_file[0]
+    selected_file=path.join(c_path,item.text()).replace('\\','/')
+
+    selected_file_stat=(selected_file.split(" "))[-1]
+    selected_file=(selected_file.split("  "))[0]
+    
 
 def choose_dir():
     #item
@@ -222,8 +224,6 @@ def choose_dir():
     global selected_file
     options = FileDialog.Options()
     options |= FileDialog.DontUseNativeDialog
-    #fileName, _ = FileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "",
-    #                                          "All Files (*);;Python Files (*.py)", options=options)
     fileName =  FileDialog.getExistingDirectory(None,"Choose Directory",c_path)
     if fileName!="":
         c_path=fileName+""
@@ -236,20 +236,19 @@ def show_dir():
     _translate = QtCore.QCoreApplication.translate
 
     ex.path_display.setText(_translate("MainWindow", c_path))
-    print(c_path)
     files=ui_client.get_files_status(c_path)
 
-    ex.files_list_display.clear()
+    if files!="the peer refused":
+        ex.files_list_display.clear()
 
-    max_name_len=36
-    #ex.files_list_display.addItems([path.basename(a)+'   '+b for a,b in files.items()])
-    for a,b in files.items():
+        font = QtGui.QFont()
+        font.setFamily("Courier New")
+        ex.files_list_display.setFont(font)
+    
+        max_name_len=36
+        ex.files_list_display.addItems([a + ' '*max([(max_name_len-len(a)),2])+ b for a,b in files.items()])
 
-        x= path.basename(a) + ' '*max([(max_name_len-len(a)),2])+ b
-
-        ex.files_list_display.addItem(x)
-
-    ex.files_list_display.repaint()
+        ex.files_list_display.repaint()
 
 def showDialog(title,mesege):
     msgBox = QtWidgets.QMessageBox()
