@@ -29,14 +29,14 @@ class Ui_MainWindow(object):
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 750)
-        font = QtGui.QFont()
-        font.setPointSize(12)
+        font = QtGui.QFont("Monospace",12)
+
         MainWindow.setFont(font)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
         self.title = QtWidgets.QLabel(self.centralwidget)
-        self.title.setGeometry(QtCore.QRect(20, 10, 281, 71))
+        self.title.setGeometry(QtCore.QRect(50, 10, 280, 70))
         font.setPointSize(36)
         self.title.setFont(font)
         self.title.setTextFormat(QtCore.Qt.RichText)
@@ -46,19 +46,24 @@ class Ui_MainWindow(object):
         self.title.setObjectName("title")
 
         self.path_display = QtWidgets.QPushButton(self.centralwidget)
-        self.path_display.setGeometry(QtCore.QRect(20, 100, 700, 71))
-        font.setPointSize(9)
+        self.path_display.setGeometry(QtCore.QRect(50, 100, 650, 70))
+        font.setPointSize(10)
         self.path_display.setFont(font)
         self.path_display.setObjectName("path_display")
 
+
+        font.setFamily("Courier New")
         self.files_list_display = QtWidgets.QListWidget(self.centralwidget)
-        self.files_list_display.setGeometry(QtCore.QRect(20, 200, 700, 400))
+        self.files_list_display.setGeometry(QtCore.QRect(50, 200, 600, 400))
+        font.setPointSize(12)
+        self.files_list_display.setFont(font)
         self.files_list_display.setObjectName("files_list_display")
-        self.files_list_display.itemClicked.connect(choose_file)#Double
+        self.files_list_display.itemClicked.connect(choose_file)
+        self.files_list_display.itemDoubleClicked.connect(open_dir)
 
 
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(20, 620, 750, 80))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(50, 620, 700, 80))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -149,7 +154,7 @@ def recover():
     elif selected_file_stat=='doesnt_backuped':
         showDialog("error", "the file doesnt have backup")
     else:
-        recover(file_path)
+        recover(selected_file)
         
 def create_beckup():
     global selected_file
@@ -171,7 +176,6 @@ def create_beckup():
 def back():
     global c_path
     global selected_file
-
     selected_file=c_path+""
     c_path=path.dirname(c_path)
     show_dir()
@@ -199,13 +203,15 @@ def open_dir():
         showDialog("error", "you can open only directories ")
     else:
         c_path=selected_file+""
+
         show_dir()
 
 def choose_file(item):
+    global c_path
     global selected_file
     global selected_file_stat
-    selected_file=item.text()
-    selected_file = selected_file.split(" ")
+    selected_file=path.join(c_path,item.text())
+    selected_file = selected_file.split("  ")
     selected_file_stat=selected_file[-1]
     selected_file=selected_file[0]
 
@@ -230,15 +236,20 @@ def show_dir():
     _translate = QtCore.QCoreApplication.translate
 
     ex.path_display.setText(_translate("MainWindow", c_path))
-
+    print(c_path)
     files=ui_client.get_files_status(c_path)
-    for a,b in files.items():
-       print(a+'   '+b)
-    print()
-    ex.files_list_display.clear()
-    ex.files_list_display.addItems([a+'   '+b for a,b in files.items()])
-    ex.files_list_display.repaint()
 
+    ex.files_list_display.clear()
+
+    max_name_len=36
+    #ex.files_list_display.addItems([path.basename(a)+'   '+b for a,b in files.items()])
+    for a,b in files.items():
+
+        x= path.basename(a) + ' '*max([(max_name_len-len(a)),2])+ b
+
+        ex.files_list_display.addItem(x)
+
+    ex.files_list_display.repaint()
 
 def showDialog(title,mesege):
     msgBox = QtWidgets.QMessageBox()

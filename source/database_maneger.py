@@ -284,8 +284,8 @@ class DatabaseMeneger:
         b=self.db_request("SELECT * from file_table WHERE path LIKE (?)",(dir_path+r'/%',))
         s=[]
         for q in a+b:
-           if path.basename(q)==dir_path:
-              s.append(q+"")
+            if path.dirname(q[0])==dir_path:
+                s.append(q+"")
         return (s)
 
     def foreign_pack_exist(self,hash):

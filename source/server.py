@@ -247,9 +247,8 @@ def put_beckup(filename):
 
 @app.route('/self/get_files_status/<path:dir_path>', methods=["GET"])
 def get_files_status(dir_path):
-    global dir_to_write
     '''return list of all the files in a dir and their status'''
-
+    global dir_to_write
     if not os.path.exists(dir_path):
         return ('{}')
     files={}
@@ -257,7 +256,9 @@ def get_files_status(dir_path):
     in_dir=os.listdir(dir_path)+os.listdir(dir_to_write)
     in_dir2=[os.path.join(dir_path,i) for i in in_dir]
 
-
+    print(in_dir)
+    print(in_dir2)
+    print()
     for f in in_dir2:
         if os.path.isdir(f):
             files[f]="directory"
