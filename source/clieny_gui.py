@@ -140,11 +140,21 @@ def main():
     sys.exit(app.exec_())
 
 def disconnect():
+    '''
+    print(42432)
     qm = QtWidgets.QMessageBox
-    qm.question(ex, '', f"Are you sure you want to disconect ", qm.Yes | qm.No)
-    if qm.Yes:
+    mb = qm.question(ex, '', f"Are you sure you want to disconect ", qm.Yes | qm.No)
+    mb.exec()
+    '''
+    msgbox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, "Confirm disconnect", "Are you sure you want to disconnect?")
+    msgbox.addButton(QtWidgets.QMessageBox.Yes)
+    msgbox.addButton(QtWidgets.QMessageBox.No)
+    msgbox.setDefaultButton(QtWidgets.QMessageBox.No)
+    ans=msgbox.exec()
+    if ans==QtWidgets.QMessageBox.Yes:
         logger.info('disconecting')
-        ui_client.disconect()
+        print(ui_client.disconect())
+        
         exit()
 def recover():
     global selected_file

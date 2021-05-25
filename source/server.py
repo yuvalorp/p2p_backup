@@ -159,7 +159,7 @@ def send_disconnect():
                 host_port = peer['port']
                 host = peer['ip']
 
-                answer = peer_client.ask_per(pack_size, pack_hash, host, host_port, IP, pack_port)
+                answer = peer_client.ask_per(pack_size, pack_hash, host, host_port, pack_ip, pack_port)
 
                 if answer == True:
                     pack = open(pack_dir + '\\' + pack_hash, 'rb')
@@ -189,9 +189,9 @@ def send_disconnect():
 
         logger.info(peer_client.send_disconnect(host, host_port, IP, port))
 
-    logger.info("deleted_files")
-    rmtree (pack_dir)
-    logger.info('remove'+str(pack_dir))
+    #logger.info("deleted_files")
+    #rmtree (pack_dir)
+    #logger.info('remove'+str(pack_dir))
 
     return 'goodbye'
 
