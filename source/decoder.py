@@ -115,14 +115,15 @@ class RemoveReed5(threading.Thread):
         missing_pack_list=[]
         for i in range(len(hash_list)):
             exist,data=peer_client.return_pack(hash_list[i]['hash'],hash_list[i]['ip'],hash_list[i]['port'],self.ip, self.port)
+            
 
             if exist:
-                self.logger.info("returned secsesfully "+hash_list[i]['hash'])
+                self.logger.info(f"returned secsesfully {hash_list[i]['hash']} {hash_list[i]['ip']} {hash_list[i]['port']}")
                 pack_list.append(data)
 
             else:
                 missing_pack_list.append(i)
-                self.logger.error(file_path + " is missing")
+                self.logger.error(f"{hash_list[i]['hash']} is missing peer {hash_list[i]['ip']} {hash_list[i]['port']} {data}")
                 pack_list.append(b"X"*self.packet_size)
 
         return ({"packages":pack_list,"path":file_path,"missing_pack_list":missing_pack_list})

@@ -273,13 +273,7 @@ def get_files_status(dir_path):
         else:
             files[f]='doesnt_backuped'
             
-    in_dir=os.listdir(dir_to_write)
-    for f in in_dir:
-        if os.path.isdir(os.path.join(dir_to_write,f)):
-            files[f]="directory"
-        else:
-            files[f]='doesnt_backuped'
-            
+
     in_dir=os.listdir(dir_path)+os.listdir(dir_to_write)
     for f in backuped:
         if f in in_dir:
