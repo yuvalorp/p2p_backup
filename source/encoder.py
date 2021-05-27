@@ -109,7 +109,6 @@ class AddReed5(threading.Thread):
 
         self.packeg_q = packeg_q
 
-
         self.packeg_proportion = {"normal": packeg_n, "reed5": self.check_len_reed(NUMBER_OF_ERRORS, packeg_n)}
 
         self.reed5_q = queue.Queue(maxsize=size_results)
@@ -148,8 +147,6 @@ class AddReed5(threading.Thread):
 
                     for packege_index in range(self.packeg_proportion["reed5"]):
                         packege_output[packege_index] +=(reed[packege_index]).to_bytes(1, byteorder='big')
-
-
 
                 self.reed5_q.put({"packages": packege_list + packege_output, "path": file_path,"key":key})
 
@@ -240,61 +237,67 @@ class Sender(threading.Thread):
         pack_num=0
         self.logger.info("runing")
         file_path= ""
+
+        blacklist=[]#peers that doesnt responce
+        peers_counter=len(self.database.get_all_peers())#for cheking if their is peers that can save packs
+
+
         while True:
             pack = self.q_input.get()
             if pack == "file end":
-                self.database.add_file(file_path, self.packeg_proportion, time())
-                self.logger.info("end file: " + file_path)
+                if peers_counter >0:#mean that there was someone that save the packs
+                    self.database.add_file(file_path, self.packeg_proportion, time())
+                    self.logger.info("end file: " + file_path)
+                else:
+                    self.logger.error(f"cant beckup now try again later")
                 pack_num=0
+                blacklist=[]
+                peers_counter = len(self.database.get_all_peers())
             else:
                 file_path = pack["path"]
-                '''for i in pack["packages"]:
-                    print( self.find_hash(i))'''
-
 
                 for i in range(self.packeg_proportion["normal"] + self.packeg_proportion["reed5"]):
+                    if peers_counter > 0:
+                        file_hash = self.find_hash(pack["packages"][i])+bytes(str(pack_num), 'utf-8').hex()
 
-                    file_hash = self.find_hash(pack["packages"][i])+bytes(str(pack_num), 'utf-8').hex()
-
-                    zero_list=self.database.zero_save_peer()
-                    shuffle(zero_list)
-                    list_of_peer = zero_list+["log"]+[i[0] for i in self.database.total_save_for_peer()]
-
-
-                    while len(list_of_peer)!=0:
-
-                        peer_id=list_of_peer[0]
-                        list_of_peer.remove(peer_id)
-                        if peer_id=='log':pass
-                        else:
+                        zero_list=self.database.zero_save_peer()
+                        shuffle(zero_list)
+                        list_of_peer = zero_list+[i[0] for i in self.database.total_save_for_peer()]
 
 
-                            peer=self.database.get_ip_from_peer(peer_id)
-                            host_port=peer['port']
-                            host = peer['ip']
+                        while len(list_of_peer)!=0 and peers_counter != 0:
 
-                            answer = peer_client.ask_per(PACKAGE_SIZE, file_hash, host, host_port, self.ip, self.port)
-
-                            if answer == True:
-
-
-
-                                answer = peer_client.put_pack(pack["packages"][i], file_hash, host, host_port, self.ip, self.port)
-
-
-                                if answer == b"writen secsesfully":
-                                    #print(file_path, file_hash, peer_id, pack_num, PACKAGE_SIZE)
-
-                                    self.database.add_pack(file_path, file_hash, peer_id, pack_num, PACKAGE_SIZE)
-
-                                    self.logger.info(f"beckuped pack {file_hash} in peer {peer} ")
-
-                                    pack_num += 1
-                                    break
-                                else:
-                                    self.logger.info(f"peer {peer} refused answer: {answer} ")
+                            peer_id=list_of_peer[0]
+                            list_of_peer.remove(peer_id)
+                            if peer_id in blacklist:
+                                self.logger.info(f"peer {peer} is in the blacklist left {peers_counter} peers")
                             else:
-                                self.logger.info(f"peer {peer} refused answer: {answer} ")
+                                peer=self.database.get_ip_from_peer(peer_id)
+                                host_port=peer['port']
+                                host = peer['ip']
+
+                                answer = peer_client.ask_per(PACKAGE_SIZE, file_hash, host, host_port, self.ip, self.port)
+                                if answer == True:
+
+                                    answer = peer_client.put_pack(pack["packages"][i], file_hash, host, host_port, self.ip, self.port)
+                                    if answer == b"writen secsesfully":
+                                        #print(file_path, file_hash, peer_id, pack_num, PACKAGE_SIZE)
+                                        self.database.add_pack(file_path, file_hash, peer_id, pack_num, PACKAGE_SIZE)
+                                        self.logger.info(f"beckuped pack {file_hash} in peer {peer} ")
+
+                                        pack_num += 1
+                                        break
+                                    else:
+                                        self.logger.info(f"peer {peer} refused answer: {answer} ")
+                                else:
+                                    self.logger.info(f"peer {peer_id} refused answer: {answer} ")
+                                    blacklist.append(peer_id)
+                                    peers_counter = peers_counter - 1
+                    else:break
+
+
+
+
 
     def find_hash(self, s):
         digest = hashes.Hash(hashes.SHA256())

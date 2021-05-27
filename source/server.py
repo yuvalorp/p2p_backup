@@ -271,7 +271,7 @@ def get_files_status(dir_path):
         if os.path.isdir(os.path.join(dir_path,f)):
             files[f]="directory"
         else:
-            files[f]='doesnt_backuped'
+            files[f]='local'
             
 
     in_dir=os.listdir(dir_path)+os.listdir(dir_to_write)

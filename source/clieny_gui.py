@@ -47,16 +47,21 @@ class Ui_MainWindow(object):
         self.title.setObjectName("title")
 
         self.path_display = QtWidgets.QPushButton(self.centralwidget)
-        self.path_display.setGeometry(QtCore.QRect(50, 100, 650, 70))
+        self.path_display.setGeometry(QtCore.QRect(50, 100, 600, 70))
         font.setPointSize(10)
         self.path_display.setFont(font)
         self.path_display.setObjectName("path_display")
+
+        self.refresh_but = QtWidgets.QPushButton(self.centralwidget)
+        self.refresh_but.setGeometry(QtCore.QRect(650, 100, 100, 70))
+        font.setPointSize(12)
+        self.refresh_but.setFont(font)
 
 
         font.setFamily("Courier New")
         self.files_list_display = QtWidgets.QListWidget(self.centralwidget)
         self.files_list_display.setGeometry(QtCore.QRect(50, 200, 600, 400))
-        font.setPointSize(12)
+        font.setPointSize(14)
         self.files_list_display.setFont(font)
         self.files_list_display.setObjectName("files_list_display")
         self.files_list_display.itemClicked.connect(choose_file)
@@ -69,33 +74,23 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
+
         self.back_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-
-        font.setPointSize(12)
-        self.back_but.setFont(font)
-        self.back_but.setObjectName("back_but")
         self.horizontalLayout.addWidget(self.back_but)
-        self.open_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
 
-        self.open_but.setFont(font)
-        self.open_but.setObjectName("open_but")
+        self.open_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
         self.horizontalLayout.addWidget(self.open_but)
 
-        self.del_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-        self.del_but.setFont(font)
-        self.del_but.setObjectName("del_but")
-        self.horizontalLayout.addWidget(self.del_but)
+        #self.del_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
+        #self.horizontalLayout.addWidget(self.del_but)
 
         self.recover_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-        self.recover_but.setObjectName("recover_but")
         self.horizontalLayout.addWidget(self.recover_but)
 
         self.create_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-        self.create_but.setObjectName("create_but")
         self.horizontalLayout.addWidget(self.create_but)
 
         self.disconnect_but = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-        self.disconnect_but.setObjectName("disconnect_but")
         self.horizontalLayout.addWidget(self.disconnect_but)
 
         self.retranslateUi(MainWindow)
@@ -109,18 +104,20 @@ class Ui_MainWindow(object):
         self.path_display.setText(_translate("MainWindow", c_path))
         self.back_but.setText(_translate("MainWindow", "back"))
         self.open_but.setText(_translate("MainWindow", "open"))
-        self.del_but.setText(_translate("MainWindow", "delete backup"))
+        #self.del_but.setText(_translate("MainWindow", "delete backup"))
         self.recover_but.setText(_translate("MainWindow", "recover"))
         self.create_but.setText(_translate("MainWindow", "create backup"))
         self.disconnect_but.setText(_translate("MainWindow", "disconnect"))
+        self.refresh_but.setText(_translate("MainWindow", "refresh"))
 
-        self.del_but.clicked.connect(del_pack)
+        #self.del_but.clicked.connect(del_pack)
         self.back_but.clicked.connect(back)
         self.open_but.clicked.connect(open_dir)
         self.path_display.clicked.connect(choose_dir)
         self.create_but.clicked.connect(create_beckup)
         self.recover_but.clicked.connect(recover)
         self.disconnect_but.clicked.connect(disconnect)
+        self.refresh_but.clicked.connect(show_dir)
 
 
 
@@ -140,12 +137,7 @@ def main():
     sys.exit(app.exec_())
 
 def disconnect():
-    '''
-    print(42432)
-    qm = QtWidgets.QMessageBox
-    mb = qm.question(ex, '', f"Are you sure you want to disconect ", qm.Yes | qm.No)
-    mb.exec()
-    '''
+
     msgbox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, "Confirm disconnect", "Are you sure you want to disconnect?")
     msgbox.addButton(QtWidgets.QMessageBox.Yes)
     msgbox.addButton(QtWidgets.QMessageBox.No)
@@ -162,7 +154,7 @@ def recover():
 
     if selected_file_stat=='directory':
         showDialog("error", "this is directory")
-    elif selected_file_stat=='doesnt_backuped':
+    elif selected_file_stat=="local":
         showDialog("error", "the file doesnt have backup")
     else:
         print(ui_client.http_recover(selected_file))
@@ -198,7 +190,7 @@ def del_pack():
         showDialog("error", "the file doesnt exist")
     elif selected_file_stat == 'directory' or path.isdir(selected_file):
         showDialog("error", "can becup only files not directorys")
-    elif selected_file_stat != 'doesnt_backuped':
+    elif selected_file_stat != 'local':
         showDialog("error", "their is a beckup for this file")
     else:
         qm=QtWidgets.QMessageBox
